@@ -13,7 +13,6 @@ authors = [
 description = "A Gradio component to encode and decode data securely within images using steganography and cryptography."
 readme = "README.md"
 requires-python = ">=3.8"
-license = { file="LICENSE" }
 classifiers = [
     "Development Status :: 3 - Alpha",
     "License :: OSI Approved :: Apache Software License",
