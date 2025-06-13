@@ -1,0 +1,39 @@
+# pyproject.toml
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gradio_keylock"
+version = "0.1.0"
+authors = [
+  { name="Your Name", email="you@example.com" },
+]
+description = "A Gradio component to encode and decode data securely within images using steganography and cryptography."
+readme = "README.md"
+requires-python = ">=3.8"
+license = { file="LICENSE" }
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Multimedia :: Graphics",
+    "Framework :: Gradio",
+]
+dependencies = [
+    "gradio>=4.0.0",
+    "numpy",
+    "Pillow",
+    "cryptography"
+]
+
+[project.urls]
+Homepage = "https://github.com/your-username/gradio-keylock"
+Repository = "https://github.com/your-username/gradio-keylock"
