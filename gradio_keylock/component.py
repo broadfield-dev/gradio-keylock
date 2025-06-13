@@ -1,7 +1,5 @@
 import gradio as gr
-from PIL import Image, ImageOps, ImageDraw, ImageFont
-import requests
-import io
+from PIL import Image, ImageDraw, ImageFont
 import json
 import logging
 import os
@@ -13,6 +11,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives import hashes
 import numpy as np
+import re
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 PREFERRED_FONTS = ["Arial", "Helvetica", "DejaVu Sans", "Verdana", "Calibri", "sans-serif"]
@@ -33,6 +32,35 @@ class AppServerLogic:
             self.public_key_pem = self.private_key_object.public_key().public_bytes(encoding=serialization.Encoding.PEM, format=serialization.PublicFormat.SubjectPublicKeyInfo).decode('utf-8')
         except Exception as e:
             logging.error(f"Key initialization failed: {e}")
+
+    @staticmethod
+    def _parse_kv_string(kv_string: str) -> dict:
+        payload = {}
+        if not kv_string:
+            return payload
+        lines = kv_string.strip().splitlines()
+        for line in lines:
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+            
+            # Use regex to split only on the first '=' or ':'
+            parts = re.split(r'[:=]', line, 1)
+            if len(parts) == 2:
+                key, value = parts
+                key = key.strip()
+                value = value.strip()
+                
+                if (key.startswith('"') and key.endswith('"')) or \
+                   (key.startswith("'") and key.endswith("'")):
+                    key = key[1:-1]
+                if (value.startswith('"') and value.endswith('"')) or \
+                   (value.startswith("'") and value.endswith("'")):
+                    value = value[1:-1]
+                
+                if key:
+                    payload[key] = value
+        return payload
 
     def decode_payload(self, image_input):
         if not self.private_key_object:
@@ -104,11 +132,14 @@ class AppServerLogic:
         font_bold = self._get_font(PREFERRED_FONTS, 30)
         draw.rectangle([0, 20, width, 80], fill=overlay_color)
         draw.text((width / 2, 50), "KeyLock Secure Data", fill=title_color, font=font_bold, anchor="ms")
+        draw.text((width / 2, 80), "Secure Keys", fill=title_color, font=font_bold, anchor="ms")
         final_image_rgb = Image.new("RGB", img_overlayed.size, (0, 0, 0))
         final_image_rgb.paste(img_overlayed, (0, 0), img_overlayed)
         return final_image_rgb
 
     def generate_encrypted_image(self, payload_dict):
+        if not payload_dict:
+            raise gr.Error("Payload is empty or could not be parsed. Please provide valid Key=Value pairs.")
         base_image = self._generate_starfield_image()
         image_with_overlay = self._draw_overlay(base_image)
         json_bytes = json.dumps(payload_dict).encode('utf-8')
@@ -121,7 +152,6 @@ class AppServerLogic:
         binary_payload = ''.join(format(b, '08b') for b in struct.pack('>I', len(payload)) + payload)
         pixel_data[:len(binary_payload)] = (pixel_data[:len(binary_payload)] & 0xFE) | np.array(list(binary_payload), dtype=np.uint8)
         final_image = Image.fromarray(pixel_data.reshape(image_with_overlay.size[1], image_with_overlay.size[0], 3), 'RGB')
-        
         with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
             final_image.save(f.name, "PNG")
             return f.name, f.name
@@ -133,36 +163,29 @@ class AppServerLogic:
         pub = pk.public_key().public_bytes(encoding=serialization.Encoding.PEM, format=serialization.PublicFormat.SubjectPublicKeyInfo).decode()
         return priv, pub
 
-class KeylockDecoderComponent(gr.components.Component):
-    EVENTS = ["change"]
-
-    def __init__(self, server_logic, **kwargs):
+class KeylockDecoderComponent:
+    def __init__(self, server_logic: AppServerLogic):
         self.server_logic = server_logic
-        self.value = None
-        super().__init__(value=self.value, **kwargs)
+        self.image_input = None
+        self.status_display = None
 
-    def _format_message(self, result: dict | None) -> str:
-        if not result or not result.get("status"): return "Upload a KeyLock image to auto-fill credentials."
-        status = result["status"]
-        if status == "Success":
-            user = result.get("payload", {}).get("USER", "N/A")
-            return f"<p style='color:green; font-weight:bold;'>✅ Success! Decoded credentials for '{user}'.</p>"
-        else:
-            message = result.get("message", "An unknown error occurred.")
-            return f"<p style='color:red; font-weight:bold;'>❌ Error: {message}</p>"
-
-    def preprocess(self, payload): return payload
-    def postprocess(self, value): return value
-    def api_info(self): return {"type": "object", "example": {"status": "Success", "payload": {"USER": "demo-user"}}}
-
-    def render(self):
-        value_state = gr.State(value=self.value)
-        
-        with gr.Column():
-            image_input = gr.Image(label="KeyLock Image", type="pil", show_label=False)
-            status_display = gr.Markdown(self._format_message(self.value))
+    def build_ui(self):
+        with gr.Group():
+            self.image_input = gr.Image(label="KeyLock Image", type="pil", show_label=False)
+            self.status_display = gr.Markdown("Upload a KeyLock image to auto-fill credentials.")
             with gr.Accordion("Generate Encrypted Image", open=False):
-                payload_input = gr.JSON(label="Payload to Encrypt", value={"API_KEY": "sk-12345-abcde", "USER": "demo-user"})
+                payload_input = gr.Textbox(
+                    label="Payload to Encrypt (Demo)",
+                    placeholder="USER = \"demo-user\"\nPASS: DEMO_test_PASS\n# Lines starting with # are ignored",
+                    lines=5,
+                    value="""
+                    USER = "TestUser"
+                    PASS: TestPass
+                    "GROQ_API_KEY" = "ALKSDFJASHFKSFH"
+                    "HF_API_KEY" : "SDFLSDJFFIEWOIFHOWI"
+                    "OPENAI_API_KEY" : SDFLSJDSFSDF
+                    """,
+                )
                 generate_img_button = gr.Button("Generate Image", variant="secondary")
                 generated_image_preview = gr.Image(label="Generated Image Preview", type="filepath", interactive=False)
                 generated_file_download = gr.File(label="Download Uncorrupted PNG", interactive=False)
@@ -171,15 +194,19 @@ class KeylockDecoderComponent(gr.components.Component):
                 with gr.Row():
                     output_private_key = gr.Code(label="Generated Private Key", language="python")
                     output_public_key = gr.Code(label="Generated Public Key", language="python")
-
-        def on_image_upload(image):
-            if image is None: return None, "Upload a KeyLock image to auto-fill credentials."
-            result_dict = self.server_logic.decode_payload(image)
-            formatted_message = self._format_message(result_dict)
-            return result_dict, formatted_message
-
-        image_input.upload(fn=on_image_upload, inputs=[image_input], outputs=[value_state, status_display])
-        generate_img_button.click(fn=self.server_logic.generate_encrypted_image, inputs=[payload_input], outputs=[generated_image_preview, generated_file_download])
-        generate_keys_button.click(fn=self.server_logic.generate_pem_keys, inputs=None, outputs=[output_private_key, output_public_key])
         
-        return {"value": value_state}
+        def generate_wrapper(kv_string):
+            payload_dict = self.server_logic._parse_kv_string(kv_string)
+            return self.server_logic.generate_encrypted_image(payload_dict)
+
+        generate_img_button.click(
+            fn=generate_wrapper,
+            inputs=[payload_input],
+            outputs=[generated_image_preview, generated_file_download]
+        )
+        generate_keys_button.click(
+            fn=self.server_logic.generate_pem_keys,
+            inputs=None,
+            outputs=[output_private_key, output_public_key]
+        )
+        return self.image_input, self.status_display
