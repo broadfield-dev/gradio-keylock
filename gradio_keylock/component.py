@@ -1,7 +1,7 @@
-# gradio_keylock/component.py
-
 import gradio as gr
 from PIL import Image, ImageOps, ImageDraw, ImageFont
+import requests
+import io
 import json
 import logging
 import os
@@ -156,12 +156,6 @@ class KeylockDecoderComponent(gr.components.Component):
     def api_info(self): return {"type": "object", "example": {"status": "Success", "payload": {"USER": "demo-user"}}}
 
     def render(self):
-        # This method is not used in the final implementation. `get_block_instance` is used instead.
-        # However, we'll leave it here as it was part of the original code.
-        # The actual rendering is handled by Gradio's backend processing.
-        pass
-
-    def get_block_instance(self):
         value_state = gr.State(value=self.value)
         
         with gr.Column():
@@ -188,6 +182,4 @@ class KeylockDecoderComponent(gr.components.Component):
         generate_img_button.click(fn=self.server_logic.generate_encrypted_image, inputs=[payload_input], outputs=[generated_image_preview, generated_file_download])
         generate_keys_button.click(fn=self.server_logic.generate_pem_keys, inputs=None, outputs=[output_private_key, output_public_key])
         
-        # Instead of returning a dictionary, we need to return the value_state component
-        # that holds the state for this custom component.
-        return value_state
+        return {"value": value_state}
