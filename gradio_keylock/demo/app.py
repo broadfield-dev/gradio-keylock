@@ -36,7 +36,9 @@ def process_image_and_display_payload(image):
 
     return status_message, payload, user, user_pass, GROQ_API_KEY, HF_TOKEN, OPENAI_API_KEY, OPENROUTER_API_KEY
 
-with gr.Blocks(theme=gr.themes.Soft()) as demo:
+gr_head = "<style>" + KeylockDecoderComponent(server_logic=server_logic).CSS +"</style>"
+
+with gr.Blocks(theme=gr.themes.Soft(), head = gr_head) as demo:
     gr.Markdown("# Gradio KeyLock Component Demo")
     gr.Markdown(
         "**Instructions:**\n"
