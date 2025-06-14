@@ -164,49 +164,180 @@ class AppServerLogic:
         return priv, pub
 
 class KeylockDecoderComponent:
-    def __init__(self, server_logic: AppServerLogic):
+    def __init__(self, server_logic):
         self.server_logic = server_logic
         self.image_input = None
         self.status_display = None
+        
+        self.CSS = """
+            #login-container {
+                max-width: 480px;
+                margin: 4rem auto !important;
+                padding: 2rem 2.5rem;
+                background-color: rgba(22, 27, 34, 0.85);
+                border: 1px solid #30363d;
+                border-radius: 12px;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            }
+            #keylock-logo {
+                text-align: center;
+                font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+                color: #c9d1d9;
+                margin-bottom: 1.5rem;
+            }
+            #keylock-logo svg {
+                width: 48px;
+                height: 48px;
+                fill: #58a6ff;
+                margin-bottom: 0.75rem;
+            }
+            #keylock-logo h1 {
+                font-size: 24px;
+                font-weight: 600;
+                margin: 0;
+            }
+            #image-upload-box {
+                background-color: #0d1117 !important;
+                border: 2px dashed #30363d !important;
+                border-radius: 8px !important;
+                min-height: 220px;
+                transition: border-color 0.2s ease-in-out, background-color 0.2s ease-in-out;
+            }
+            #image-upload-box:hover {
+                border-color: #58a6ff !important;
+                background-color: #161b22 !important;
+            }
+            #image-upload-box .!h-full.w-full > div:first-of-type {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #8b949e;
+            }
+            #status-display {
+                text-align: center;
+                padding: 1rem;
+                border-radius: 6px;
+                margin-top: 1rem;
+                min-height: 50px;
+                background-color: #161b22;
+                border: 1px solid #30363d;
+                transition: all 0.3s ease;
+            }
+            #status-display ul {
+                list-style-type: none;
+                padding: 0;
+                margin: 0.5rem 0 0 0;
+                text-align: left;
+            }
+            #status-display li {
+                background-color: #0d1117;
+                padding: 0.5rem;
+                margin-top: 0.5rem;
+                border-radius: 4px;
+                border: 1px solid #30363d;
+            }
+            .tool-accordion {
+                border-color: #30363d !important;
+                background-color: #0d1117 !important;
+                border-radius: 8px !important;
+                margin-top: 1.5rem;
+            }
+            .tool-accordion > .label-wrap {
+                background-color: #161b22 !important;
+            }
+        """
+
+    def _handle_login_attempt(self, image_input: Image.Image):
+        if image_input is None:
+            return gr.update(value='<p style="color:#8b949e;">Awaiting KeyLock image...</p>', visible=True)
+        
+        result = self.server_logic.decode_payload(image_input)
+
+        if result["status"] == "Success":
+            payload_html = "<ul>"
+            for key, value in result['payload'].items():
+                value_display = "•" * len(str(value)) if "pass" in key.lower() else value
+                payload_html += f"<li><strong>{key}:</strong> {value_display}</li>"
+            payload_html += "</ul>"
+            
+            return gr.update(
+                value=f'<div style="color:#3fb950;">'
+                      f'<h4>Authentication Success</h4>'
+                      f'{payload_html}'
+                      f'</div>',
+                visible=True
+            )
+        else:
+            return gr.update(
+                value=f'<p style="color:#f85149;"><strong>Login Failed:</strong> {result["message"]}</p>',
+                visible=True
+            )
 
     def build_ui(self):
-        with gr.Group():
-            self.image_input = gr.Image(label="KeyLock Image", type="pil", show_label=False)
-            self.status_display = gr.Markdown("Upload a KeyLock image to auto-fill credentials.")
-            with gr.Accordion("Generate Encrypted Image", open=False):
-                payload_input = gr.Textbox(
-                    label="Payload to Encrypt (Demo)",
-                    placeholder="USER = \"demo-user\"\nPASS: DEMO_test_PASS\n# Lines starting with # are ignored",
-                    lines=5,
-                    value="""
-                    USER = "TestUser"
-                    PASS: TestPass
-                    "GROQ_API_KEY" = "ALKSDFJASHFKSFH"
-                    "HF_API_KEY" : "SDFLSDJFFIEWOIFHOWI"
-                    "OPENAI_API_KEY" : SDFLSJDSFSDF
-                    """,
-                )
-                generate_img_button = gr.Button("Generate Image", variant="secondary")
-                generated_image_preview = gr.Image(label="Generated Image Preview", type="filepath", interactive=False)
-                generated_file_download = gr.File(label="Download Uncorrupted PNG", interactive=False)
-            with gr.Accordion("Create New Standalone Key Pair", open=False):
-                generate_keys_button = gr.Button("Generate Keys", variant="secondary")
-                with gr.Row():
-                    output_private_key = gr.Code(label="Generated Private Key", language="python")
-                    output_public_key = gr.Code(label="Generated Public Key", language="python")
+        gr.HTML("<div style='background:blue;'>")
+        with gr.Column(elem_id="login-container"):
+            #<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 48" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"></path></svg>;
         
+            gr.HTML("""
+                <div id="keylock-logo">
+                    
+                    <h1>KeyLock Authentication</h1>
+                </div>
+            """)
+            
+            self.image_input = gr.Image(
+                label="KeyLock Image",
+                type="pil",
+                show_label=False,
+                elem_id="image-upload-box"
+            )
+            
+            self.status_display = gr.HTML(
+                '<p style="color:#8b949e;">Upload a KeyLock image to authenticate.</p>',
+                elem_id="status-display"
+            )
+
+            with gr.Accordion("Generator Tools", open=False, elem_classes=["tool-accordion"]):
+                with gr.Tabs():
+                    with gr.TabItem("Encrypt Payload"):
+                        payload_input = gr.Textbox(
+                            label="Data to Encrypt (Key=Value format)",
+                            placeholder="USER = \"demo-user\"\nPASS: DEMO_test_PASS\n# Lines starting with # are ignored",
+                            lines=5,
+                            value="""USER = "TestUser"\nPASS: TestPass\n"GROQ_API_KEY" = "ALKSDFJASHFKSFH" """,
+                        )
+                        generate_img_button = gr.Button("Generate Encrypted Image", variant="primary")
+                        generated_image_preview = gr.Image(label="Generated Image Preview", type="filepath", interactive=False)
+                        generated_file_download = gr.File(label="Download Uncorrupted PNG", interactive=False)
+                    
+                    with gr.TabItem("Create Key Pair"):
+                        gr.Markdown("Create a new standalone RSA-2048 key pair.")
+                        generate_keys_button = gr.Button("Generate Keys", variant="secondary")
+                        with gr.Row():
+                            output_private_key = gr.Code(label="Generated Private Key", language="python", interactive=False)
+                            output_public_key = gr.Code(label="Generated Public Key", language="python", interactive=False)
+
         def generate_wrapper(kv_string):
             payload_dict = self.server_logic._parse_kv_string(kv_string)
             return self.server_logic.generate_encrypted_image(payload_dict)
+        gr.HTML("</div>")
 
+        self.image_input.upload(
+            fn=self._handle_login_attempt,
+            inputs=[self.image_input],
+            outputs=[self.status_display]
+        )
+        
         generate_img_button.click(
             fn=generate_wrapper,
             inputs=[payload_input],
             outputs=[generated_image_preview, generated_file_download]
         )
+        
         generate_keys_button.click(
             fn=self.server_logic.generate_pem_keys,
             inputs=None,
             outputs=[output_private_key, output_public_key]
         )
+
         return self.image_input, self.status_display
