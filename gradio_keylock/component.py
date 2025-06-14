@@ -174,7 +174,6 @@ class KeylockDecoderComponent:
                 max-width: 480px;
                 margin: 4rem auto !important;
                 margin-top: 0px !important;
-                margin-bottom: 0px !important;
                 padding: 2rem 2.5rem;
                 background-color: rgba(22, 27, 34, 0.85);
                 border: 1px solid #30363d;
@@ -184,7 +183,6 @@ class KeylockDecoderComponent:
             #keylock-logo {
                 text-align: center;
                 font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
-                color: #c9d1d9;
                 margin-bottom: 1.5rem;
             }
             #keylock-logo svg {
@@ -197,6 +195,8 @@ class KeylockDecoderComponent:
                 font-size: 24px;
                 font-weight: 600;
                 margin: 0;
+                color: var(--primary-100);
+
             }
             #image-upload-box {
                 background-color: #0d1117 !important;
