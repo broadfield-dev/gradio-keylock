@@ -175,10 +175,9 @@ class KeylockDecoderComponent:
                 margin: 4rem auto !important;
                 margin-top: 0px !important;
                 padding: 2rem 2.5rem;
-                background-color: rgba(22, 27, 34, 0.85);
                 border: 1px solid #30363d;
                 border-radius: 12px;
-                box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+                box-shadow: 0px 0px 14px rgba(0, 0, 0, 0.5);
             }
             #keylock-logo {
                 text-align: center;
@@ -195,8 +194,7 @@ class KeylockDecoderComponent:
                 font-size: 24px;
                 font-weight: 600;
                 margin: 0;
-                color: var(--primary-100);
-
+                color: var(--body-text-color);
             }
             #image-upload-box {
                 background-color: #0d1117 !important;
@@ -246,6 +244,8 @@ class KeylockDecoderComponent:
             }
             .tool-accordion > .label-wrap {
                 background-color: #161b22 !important;
+                color: var(--primary-100) !important;
+                padding: 10px;
             }
         """
 
@@ -276,7 +276,6 @@ class KeylockDecoderComponent:
             )
 
     def build_ui(self):
-        gr.HTML("<div style='background:blue;'>")
         with gr.Column(elem_id="login-container"):
             #<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 48" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"></path></svg>;
         
@@ -322,7 +321,6 @@ class KeylockDecoderComponent:
         def generate_wrapper(kv_string):
             payload_dict = self.server_logic._parse_kv_string(kv_string)
             return self.server_logic.generate_encrypted_image(payload_dict)
-        gr.HTML("</div>")
 
         self.image_input.upload(
             fn=self._handle_login_attempt,
