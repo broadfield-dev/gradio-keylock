@@ -173,6 +173,8 @@ class KeylockDecoderComponent:
             #login-container {
                 max-width: 480px;
                 margin: 4rem auto !important;
+                margin-top: 0px !important;
+                margin-bottom: 0px !important;
                 padding: 2rem 2.5rem;
                 background-color: rgba(22, 27, 34, 0.85);
                 border: 1px solid #30363d;
