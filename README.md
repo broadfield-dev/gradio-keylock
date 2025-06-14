@@ -7,8 +7,6 @@ The component provides a user interface for:
 2.  **Encoding**: Generating a new KeyLock image from a JSON payload.
 3.  **Key Generation**: Creating new RSA key pairs for use in other applications.
 
-![Component Screenshot](https://raw.githubusercontent.com/your-username/gradio-keylock/main/screenshot.png)
-
 ## Installation
 
 You can install the component directly from PyPI:
