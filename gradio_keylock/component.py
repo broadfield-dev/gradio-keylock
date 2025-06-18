@@ -276,40 +276,41 @@ class KeylockDecoderComponent:
             )
 
     def build_ui(self, visible=True, compact=True, closed=True ):
-        gr.HTML("<h1>KeyLock Authentication</h1>")
-        with gr.Accordion(elem_id="login-container", visible=False if visible==False else True):
-
-            self.image_input = gr.Image(
-                label="KeyLock Image",
-                type="pil",
-                show_label=False,
-                elem_id="image-upload-box"
-            )
-            
-            self.status_display = gr.HTML(
-                '<p style="color:#8b949e;">Upload a KeyLock image to authenticate.</p>',
-                elem_id="status-display"
-            )
-
-            with gr.Accordion("Generator Tools", open=False if compact==True else True, elem_classes=["tool-accordion"]):
-                with gr.Tabs():
-                    with gr.TabItem("Encrypt Payload"):
-                        payload_input = gr.Textbox(
-                            label="Data to Encrypt (Key=Value format)",
-                            placeholder="USER = \"demo-user\"\nPASS: DEMO_test_PASS\n# Lines starting with # are ignored",
-                            lines=5,
-                            value="""USER = "TestUser"\nPASS: TestPass\n"GROQ_API_KEY" = "ALKSDFJASHFKSFH" """,
-                        )
-                        generate_img_button = gr.Button("Generate Encrypted Image", variant="primary")
-                        generated_image_preview = gr.Image(label="Generated Image Preview", type="filepath", interactive=False)
-                        generated_file_download = gr.File(label="Download Uncorrupted PNG", interactive=False)
-                    
-                    with gr.TabItem("Create Key Pair"):
-                        gr.Markdown("Create a new standalone RSA-2048 key pair.")
-                        generate_keys_button = gr.Button("Generate Keys", variant="secondary")
-                        with gr.Row():
-                            output_private_key = gr.Code(label="Generated Private Key", language="python", interactive=False)
-                            output_public_key = gr.Code(label="Generated Public Key", language="python", interactive=False)
+        with gr.Group():
+            gr.HTML("<center><h1>KeyLock Authentication</h1>")
+            with gr.Accordion(elem_id="login-container", visible=False if visible==False else True):
+    
+                self.image_input = gr.Image(
+                    label="KeyLock Image",
+                    type="pil",
+                    show_label=False,
+                    elem_id="image-upload-box"
+                )
+                
+                self.status_display = gr.HTML(
+                    '<p style="color:#8b949e;">Upload a KeyLock image to authenticate.</p>',
+                    elem_id="status-display"
+                )
+    
+                with gr.Accordion("Generator Tools", open=False if compact==True else True, elem_classes=["tool-accordion"]):
+                    with gr.Tabs():
+                        with gr.TabItem("Encrypt Payload"):
+                            payload_input = gr.Textbox(
+                                label="Data to Encrypt (Key=Value format)",
+                                placeholder="USER = \"demo-user\"\nPASS: DEMO_test_PASS\n# Lines starting with # are ignored",
+                                lines=5,
+                                value="""USER = "TestUser"\nPASS: TestPass\n"GROQ_API_KEY" = "ALKSDFJASHFKSFH" """,
+                            )
+                            generate_img_button = gr.Button("Generate Encrypted Image", variant="primary")
+                            generated_image_preview = gr.Image(label="Generated Image Preview", type="filepath", interactive=False)
+                            generated_file_download = gr.File(label="Download Uncorrupted PNG", interactive=False)
+                        
+                        with gr.TabItem("Create Key Pair"):
+                            gr.Markdown("Create a new standalone RSA-2048 key pair.")
+                            generate_keys_button = gr.Button("Generate Keys", variant="secondary")
+                            with gr.Row():
+                                output_private_key = gr.Code(label="Generated Private Key", language="python", interactive=False)
+                                output_public_key = gr.Code(label="Generated Public Key", language="python", interactive=False)
 
         def generate_wrapper(kv_string):
             payload_dict = self.server_logic._parse_kv_string(kv_string)
