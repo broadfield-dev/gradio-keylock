@@ -276,7 +276,8 @@ class KeylockDecoderComponent:
             )
 
     def build_ui(self, visible=True, compact=True, closed=True ):
-        with gr.Accordion("KeyLock Authentication", elem_id="login-container", visible=False if visible==False else True):
+        gr.HTML("<h1>KeyLock Authentication</h1>")
+        with gr.Accordion(elem_id="login-container", visible=False if visible==False else True):
 
             self.image_input = gr.Image(
                 label="KeyLock Image",
