@@ -17,10 +17,11 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 PREFERRED_FONTS = ["Arial", "Helvetica", "DejaVu Sans", "Verdana", "Calibri", "sans-serif"]
 
 class AppServerLogic:
-    def __init__(self):
-        self.private_key_object = None
-        self.public_key_pem = ""
-        self._initialize_keys()
+    def __init__(self,new_keys=True):
+        if new_keys=True:
+            self.private_key_object = None
+            self.public_key_pem = ""
+            self._initialize_keys()
 
     def _initialize_keys(self):
         key_pem = os.environ.get('KEYLOCK_PRIV_KEY')
@@ -258,7 +259,7 @@ class KeylockDecoderComponent:
         if result["status"] == "Success":
             payload_html = "<ul>"
             for key, value in result['payload'].items():
-                value_display = "•" * len(str(value)) if "pass" in key.lower() else value
+                value_display = "•" * len(str(value))
                 payload_html += f"<li><strong>{key}:</strong> {value_display}</li>"
             payload_html += "</ul>"
             
