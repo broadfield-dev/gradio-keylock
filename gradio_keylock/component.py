@@ -18,10 +18,9 @@ PREFERRED_FONTS = ["Arial", "Helvetica", "DejaVu Sans", "Verdana", "Calibri", "s
 
 class AppServerLogic:
     def __init__(self,new_keys=True):
-        if new_keys=True:
-            self.private_key_object = None
-            self.public_key_pem = ""
-            self._initialize_keys()
+        self.private_key_object = None
+        self.public_key_pem = ""
+        self._initialize_keys()
 
     def _initialize_keys(self):
         key_pem = os.environ.get('KEYLOCK_PRIV_KEY')
