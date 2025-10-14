@@ -9,13 +9,8 @@ The component provides a user interface for:
 
 ## Installation
 
-You can install the component directly from PyPI:
+You can install the component directly from GitHub:
 
-```bash
-pip install gradio_keylock
-```
-
-Or from GitHub:
 ```bash
 pip install git+https://github.com/broadfield-dev/gradio-keylock.git
 ```
@@ -23,6 +18,12 @@ pip install git+https://github.com/broadfield-dev/gradio-keylock.git
 ## Usage
 
 The component is composed of two classes: `AppServerLogic`, which handles the cryptography and image manipulation, and `KeylockDecoderComponent`, the Gradio UI component itself.
+
+### Generate a Private Key and save to your environment
+
+```bash
+KEYLOCK_PRIV_KEY=**private key value**
+```
 
 Here is a simple example of how to use it in a Gradio application:
 
@@ -70,7 +71,7 @@ demo.launch()
 
 To install for development, clone the repository and install in editable mode:
 ```bash
-git clone https://github.com/your-username/gradio-keylock.git
+git clone https://github.com/broadfield-dev/gradio-keylock.git
 cd gradio-keylock
 pip install -e .
 ```
