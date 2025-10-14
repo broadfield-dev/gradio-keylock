@@ -17,7 +17,7 @@ pip install gradio_keylock
 
 Or from GitHub:
 ```bash
-pip install git+https://github.com/your-username/gradio-keylock.git
+pip install git+https://github.com/broadfield-dev/gradio-keylock.git
 ```
 
 ## Usage
